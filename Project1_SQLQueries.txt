@@ -1,0 +1,79 @@
+/* Query 1 - Who were our top 10 paying customers, how many payments they made on a monthly basis and what was the amount of the monthly payments */
+/* Get the top ten paying customers */
+WITH top_ten AS 
+(SELECT customer_id, sum(amount) AS payment_amt_total
+  FROM payment
+ GROUP BY 1
+ ORDER BY 2 DESC
+ LIMIT 10) 
+ 
+/* Get the monthly payment details and the count of the payments for the top ten customers */ 
+SELECT date_trunc('month',p.payment_date) AS paid_month, c.first_name || ' '|| c.last_name AS full_name,count(*) AS count_per_month,
+		sum(p.amount) AS pay_amount
+   FROM payment p
+   JOIN top_ten t
+     ON p.customer_id = t.customer_id
+   JOIN customer c
+     ON c.customer_id = t.customer_id
+  GROUP BY 1,2
+  ORDER BY 2,1;
+  
+/* Query 2- Provide a table with the family-friendly film category, each of the quartiles, 
+            and the corresponding count of movies within each combination of film category 
+			for each corresponding rental duration category */
+		
+SELECT category,standard_quartile, count(*) AS count
+  FROM 
+   (SELECT c.name AS category, NTILE(4) OVER (ORDER BY rental_duration) standard_quartile
+      FROM film f
+      JOIN film_category fc
+        ON f.film_id = fc.film_id
+      JOIN category c
+        ON fc.category_id = c.category_id
+     WHERE c.name IN ('Animation','Children','Classics','Comedy','Family','Music')) sub
+GROUP BY 1,2
+ORDER BY 1,2;
+
+
+/* Query 3- List the movies along with their categories that were rented the
+            most number of times in 2005. Also, rank the movies based on the number of times 
+			it was rented. */
+
+
+SELECT film,category,count_rental,DENSE_RANK() OVER (ORDER  BY count_rental DESC) AS rank_rental
+FROM 
+(
+   SELECT f.title AS film, c.name as category,count(rental_id) AS count_rental
+     FROM film f
+     JOIN film_category fc
+       ON f.film_id=fc.film_id
+     JOIN category c
+       ON fc.category_id=c. category_id   
+     JOIN inventory i
+       ON f.film_id=i.film_id
+     JOIN rental r
+       ON i.inventory_id= r.inventory_id
+      AND rental_date BETWEEN '2005-01-01' AND '2005-12-31'
+    GROUP BY 1,2
+  ORDER BY 3 DESC ) t1
+ORDER BY 4;
+
+
+/*Query 4- How do the two stores compare in their count of 
+           rental orders during every month for all the years that we have data for? */
+
+SELECT rental_year|| '-'|| rental_month AS rental_year_month, store,count_rentals
+FROM 
+(
+	SELECT DATE_PART('month', r.rental_date) AS rental_month,
+	       DATE_PART('year', r.rental_date)  AS rental_year,
+           st.store_id AS store,COUNT(*) AS count_rentals
+      FROM rental r
+      JOIN staff s
+        ON s.staff_id = r.staff_id
+      JOIN store st
+        ON s.store_id=st.store_id
+     GROUP BY 1,2,3
+     ORDER BY 4 DESC)t1
+ ORDER BY 3 DESC;
+
