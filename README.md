@@ -6,6 +6,7 @@
 Udacity SQL project inital version
 ### Description
 This contains all the queries for the SQL project
+Added notes and queries on joins
 ### Files used
 None
 ### Credits
