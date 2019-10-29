@@ -8,7 +8,8 @@ Udacity SQL project inital version
 This contains all the queries for the SQL project
 Added notes and queries on SQL joins
 ### Files used
-None
+Project1_SQLQueries.txt
+Joins.txt
 ### Credits
 1.Udacity lessons
 2.Udacity knowledgebase
